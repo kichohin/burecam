@@ -32,7 +32,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transform: rotate(-6deg);
       position: relative;
-      padding: 12px 12px 40px 12px; /* 上左右:12px 下:40px ポラロイド感 */
+      padding: 12px 12px 40px 12px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -162,15 +162,21 @@
       }, 100);
 
       video.pause();
+      // 📸 ストーリー用の固定サイズ（1080x1920）に設定
+      canvas.width = 1080;
+      canvas.height = 1920;
+
       ctx.save();
       if (useFrontCamera) {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
       }
+
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       ctx.globalAlpha = 0.15;
       ctx.drawImage(video, 15, 10, canvas.width, canvas.height);
       ctx.globalAlpha = 1.0;
+
       ctx.restore();
 
       const image = canvas.toDataURL('image/png');
@@ -188,6 +194,5 @@
 
     startCamera();
   </script>
-  
 </body>
 </html>
