@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BURECAM</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: url('/mnt/data/ChatGPT Image 2025年4月16日 20_12_48.png') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      overflow: hidden;
+    }
+
+    .camera-frame {
+      width: 270px;
+      height: 480px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: rotate(-6deg);
+      position: relative;
+      padding: 12px 12px 40px 12px; /* 上左右:12px 下:40px ポラロイド感 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .camera-inner {
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    video.mirror {
+      transform: scaleX(-1);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid white;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+    }
+
+    .btn svg {
+      fill: white;
+      width: 24px;
+      height: 24px;
+    }
+
+    #flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease-out;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="camera-frame">
+    <div class="camera-inner">
+      <video id="video" autoplay playsinline></video>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="btn" id="switch-camera" title="カメラ切替">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 6V9L16 5L12 1V4C6.48 4 2 8.48 2 14H4C4 9.58 7.58 6 12 6ZM20 10H18C18 14.42 14.42 18 10 18V15L6 19L10 23V20C15.52 20 20 15.52 20 10Z"/>
+      </svg>
+    </div>
+    <div class="btn" id="take-photo" title="シャッター">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 7C9.24 7 7 9.24 7 12S9.24 17 12 17 17 14.76 17 12 14.76 7 12 7ZM4 5H7L9 3H15L17 5H20C21.1 5 22 5.9 22 7V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V7C2 5.9 2.9 5 4 5Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <canvas id="canvas" width="1080" height="1920" style="display:none;"></canvas>
+  <a id="download" style="display:none;">Download</a>
+  <div id="flash"></div>
+
+  <script>
+    let useFrontCamera = true;
+    let stream;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const flash = document.getElementById('flash');
+
+    async function startCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: useFrontCamera ? 'user' : 'environment',
+          width: { ideal: 1080 },
+          height: { ideal: 1920 }
+        }
+      };
+
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      video.classList.toggle('mirror', useFrontCamera);
+    }
+
+    document.getElementById('switch-camera').addEventListener('click', () => {
+      useFrontCamera = !useFrontCamera;
+      startCamera();
+    });
+
+    document.getElementById('take-photo').addEventListener('click', () => {
+      flash.style.opacity = '1';
+      setTimeout(() => {
+        flash.style.opacity = '0';
+      }, 100);
+
+      video.pause();
+      ctx.save();
+      if (useFrontCamera) {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 0.15;
+      ctx.drawImage(video, 15, 10, canvas.width, canvas.height);
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+
+      const image = canvas.toDataURL('image/png');
+      const confirmSave = confirm("この写真を保存しますか？");
+
+      if (confirmSave) {
+        const link = document.getElementById('download');
+        link.href = image;
+        link.download = 'burecam_' + Date.now() + '.png';
+        link.click();
+      }
+
+      video.play();
+    });
+
+    startCamera();
+  </script>
+</body>
+</html>
