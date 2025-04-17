@@ -27,30 +27,22 @@
     .camera-frame {
       width: 270px;
       height: 480px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      transform: rotate(-6deg);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       position: relative;
-      padding: 12px 12px 40px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      overflow: hidden;
+      transform: rotate(-4deg);
     }
 
     .camera-inner {
       width: 100%;
       height: 100%;
-      background: black;
-      overflow: hidden;
-      border-radius: 4px;
     }
 
     video {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      border-radius: 4px;
+      object-fit: cover;
     }
 
     video.mirror {
@@ -61,7 +53,7 @@
       display: flex;
       justify-content: center;
       gap: 40px;
-      margin-top: 24px;
+      margin-top: 20px;
     }
 
     .btn {
@@ -170,13 +162,11 @@
       let sx, sy, sw, sh;
 
       if (videoAspect > canvasAspect) {
-        // 横をトリミング
         sh = video.videoHeight;
         sw = sh * canvasAspect;
         sx = (video.videoWidth - sw) / 2;
         sy = 0;
       } else {
-        // 縦をトリミング
         sw = video.videoWidth;
         sh = sw / canvasAspect;
         sx = 0;
